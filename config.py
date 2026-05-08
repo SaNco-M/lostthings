@@ -1,0 +1,2 @@
+AD_LIMIT = 5
+DEFAULT_STATUS = "draft"
