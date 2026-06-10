@@ -1,9 +1,8 @@
 from typing import Iterator
 
-from models.base import Ad
-from exceptions.errors import IdError
-from models.users import User
-
+from models import Ad, User
+from exceptions import IdError
+from utils import admin_required, type_check, time_logger
 
 class LostAndFound:
     """Главный класс системы"""
@@ -29,6 +28,7 @@ class LostAndFound:
     def get_list_users(self) -> list[User]:
         return list(self.__users.values())
 
+    @type_check(user_id=int, name=str, contact_info=str)
     def register_user(self, user_id, name, contact_info):
         if user_id in self.__users:
             raise IdError("Ошибка, айди занят")
@@ -42,18 +42,9 @@ class LostAndFound:
         else:
             raise IdError('Такого пользователя нет')
 
-    def global_search(self, keyword: str) -> list[Ad]:
-        """Поиск по ключевым словам"""
-        result = [
-            j
-            for i in self.__users.values()
-            for j in i.get_ads()
-            if (
-                       keyword.lower() in j.get_search_text().lower()
-               )
-               and j.status == "published"
-        ]
-        return result
+    @admin_required
+    def force_delete_ad(self, initiator: User, user_id: int, ad_index: int):
+        pass
 
     def verify_user_ad(self, user_id: int, ad_index: int):
         if not user_id in self.__users:

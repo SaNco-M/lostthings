@@ -28,7 +28,8 @@ def main():
             category="Собака",
             breed="Овчарка",
             color="Черный",
-            pet_name="Бобик"
+            pet_name="Бобик",
+            reward=5000
         )
 
         system.post_ad_to_user(
@@ -54,7 +55,7 @@ def main():
     # -------------------
     # Демонстрация + (User + Ad)
     # -------------------
-    tom = User(4, "Том", "ВК-gas")
+    tom = User(4, "Том", "ВК@gas")
     ad_tom = PetAd("Том", "Собака", "Желтый", "хаски", "Бобик")
 
     tom + ad_tom
@@ -73,11 +74,6 @@ def main():
     system.bulk_publish(1)
     system.bulk_publish(2)
     system.bulk_publish(3)
-
-    # -------------------
-    # Поиск
-    # -------------------
-    print("Поиск 'Кошка':", system.global_search("Кошка"))
 
     # -------------------
     # Статистика

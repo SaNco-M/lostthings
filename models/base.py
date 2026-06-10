@@ -4,13 +4,17 @@ from config import AD_LIMIT, DEFAULT_STATUS
 class Ad:
     """Хранит и выводит информацию об объявлении"""
     total_ads = 0
+    __slots__ = (
+        'author', 'category', 'color', '__is_verified', '__status', 'metadata'
+    )
 
-    def __init__(self, author: str, category: str, color: str):
+    def __init__(self, author: str, category: str, color: str, **kwargs):
         self.author = author
         self.category = category
         self.color = color
         self.__is_verified = False
         self.__status = DEFAULT_STATUS
+        self.metadata = kwargs
 
         if Ad.total_ads >= AD_LIMIT:
             raise ValueError("Вы создали слишком много объявлений")

@@ -5,6 +5,9 @@ from models.base import Ad
 
 class User:
     """Хранит информацию о юзере и создает/получает объявление"""
+    __slots__ = (
+        'user_id', 'name', '_contact_info', '__my_ads'
+    )
 
     def __init__(self, user_id: int, name: str, contact_info: str):
         self.user_id = user_id
@@ -25,31 +28,19 @@ class User:
         self.__my_ads.append(other)
         return self
 
+    @property
+    def contact_info(self):
+        return self._contact_info
+
+    @contact_info.setter
+    def contact_info(self, person_info: str) -> None:
+        if "@" not in person_info and "+" not in person_info:
+            raise ValueError("Добавьте + или @")
+        self._contact_info = person_info
+
     def create_ad(self, ad_class, **kwargs) -> None:
-        if ad_class == PetAd:
-            required = ["category", "color", "breed", "pet_name"]
-            missing = []
-            for i in required:
-                if i not in kwargs:
-                    missing.append(i)
-            if missing:
-                raise ValueError("Вы ввели неправильные данные")
-            else:
-                new_ad = ad_class(author=self.name, **kwargs)
-                self.__my_ads.append(new_ad)
-
-
-        elif ad_class == ItemAd:
-            required = ["category", "color", "value"]
-            missing = []
-            for i in required:
-                if i not in kwargs:
-                    missing.append(i)
-            if missing:
-                raise ValueError("Вы ввели неправильные данные")
-            else:
-                new_ad = ad_class(author=self.name, **kwargs)
-                self.__my_ads.append(new_ad)
+        new_ad = ad_class(author=self.name, **kwargs)
+        self.__my_ads.append(new_ad)
 
     def get_ads(self):
         return self.__my_ads
@@ -58,7 +49,7 @@ class User:
 class Admin(User):
     def __init__(self, user_id: int, name: str, contact_info: str):
         super().__init__(user_id, name, contact_info)
-        self.role = "System Admin"
+        self.role = "Admin"
 
     def moderate_ad(self, ad: Ad) -> None:
         ad.verify()

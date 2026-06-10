@@ -3,12 +3,31 @@ from models.base import Ad
 
 class ItemAd(Ad):
     """Хранит информацию о вещах"""
-    def __init__(self, author, category, color, value):
-        super().__init__(author, category, color)
+    __slots__ = (
+        'value', 
+    )
+
+    def __init__(self, author: str, category: str, color: str, value: int, **kwargs):
+        super().__init__(author, category, color, **kwargs)
         self.value = value
 
     def __str__(self):
-        return f"[Вещь] Категория: {self.category}, Цвет: {self.color}, Примерная стоимость: {self.value}"
+        if self.metadata:
+            extra_info = ', '.join(f'{k}={v}' for k, v in self.metadata.items())
+
+            return (
+                f"[Вещь] Категория: {self.category},"
+                f" Цвет: {self.color},"
+                f" Примерная стоимость: {self.value}"
+                f" Доп. Инф: {extra_info}"
+            )
+
+        else:
+            return (
+                f"[Вещь] Категория: {self.category},"
+                f" Цвет: {self.color},"
+                f" Примерная стоимость: {self.value}"
+            )
 
     def get_search_text(self):
         return f"{self.category} {self.color} {self.value}"
