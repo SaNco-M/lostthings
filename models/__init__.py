@@ -1,2 +1,1 @@
-from .base import Ad
-from .users import User, Admin
+from .db_models import Base, UserModel, AdModel, ItemAdModel, PetAdModel

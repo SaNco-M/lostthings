@@ -1,85 +1,79 @@
 from typing import Iterator
 
-from models import Ad, User
-from exceptions import IdError
-from utils import admin_required, type_check, time_logger
+from sqlalchemy.orm import Session
+
+from core import UserRepository, AdRepository
+from models import Ad, User, AdModel, PetAdModel, ItemAdModel
+from utils import admin_required, type_check
+
 
 class LostAndFound:
     """Главный класс системы"""
 
-    def __init__(self) -> None:
-        self.__users = {}
+    def __init__(self, session: Session):
+        self.session = session
+        self.user_repo = UserRepository(session)
+        self.ad_repo = AdRepository(session)
 
     def __iter__(self) -> Iterator:
-        for user in self.__users.values():
-            for ad in user.get_ads():
-                yield ad
+        for ad in self.ad_repo.get_all_ads():
+            yield ad
 
-    def __call__(self, lost_ad: Ad) -> list[Ad]:
+    def __call__(self, lost_ad: Ad) -> list[AdModel]:
         res = [
             ad
-            for user in self.__users.values()
-            for ad in user.get_ads()
+            for ad in self.ad_repo.get_all_ads()
             if ad.match(lost_ad)
         ]
 
         return res
 
-    def get_list_users(self) -> list[User]:
-        return list(self.__users.values())
+    def get_list_users(self):
+        return self.user_repo.get_all_users()
 
-    @type_check(user_id=int, name=str, contact_info=str)
-    def register_user(self, user_id, name, contact_info):
-        if user_id in self.__users:
-            raise IdError("Ошибка, айди занят")
-        self.__users[user_id] = User(user_id, name, contact_info)
+    @type_check(name=str, contact_info=str)
+    def register_user(self, name, contact_info):
+        self.user_repo.add(name=name, contact_info=contact_info)
         print('Пользователь добавлен')
 
-    def post_ad_to_user(self, user_id: int, **kwargs):
+    def post_ad_to_user(self, user_id: int, ad_class, **kwargs):
         """Добавление объявления пользователю"""
-        if user_id in self.__users:
-            self.__users.get(user_id).create_ad(**kwargs)
-        else:
-            raise IdError('Такого пользователя нет')
+
+        if ad_class == PetAdModel:
+            self.ad_repo.add_pet_ad(user_id=user_id, **kwargs)
+
+        elif ad_class == ItemAdModel:
+            self.ad_repo.add_item_ad(user_id=user_id, **kwargs)
 
     @admin_required
     def force_delete_ad(self, initiator: User, user_id: int, ad_index: int):
         pass
 
-    def verify_user_ad(self, user_id: int, ad_index: int):
-        if not user_id in self.__users:
-            raise IdError('Такого пользователя нет')
-        user = self.__users[user_id]
-        ads = user.get_ads()
-        ad = ads[ad_index]
+    def verify_user_ad(self, user_id: int, ad_index: int) -> None:
+        user = self.user_repo.get_by_id(user_id)
+        ad = user.user_ads[ad_index]
         ad.verify()
         ad.publish()
+        self.session.commit()
 
     def get_system_stats(self) -> dict[str, int]:
-        return {i.name: len(i.get_ads()) for i in self.__users.values()}
+        return {i.name: len(i.user_ads) for i in self.user_repo.get_all_users()}
 
-    def filter_ads(self, category: str | None, status: str | None, author_name: str | None) -> list[Ad]:
+    def filter_ads(self, category: str | None = None, color: str | None = None):
         """Фильтры объявлений"""
-        result = [
-            ad
-            for user in self.__users.values()
-            for ad in user.get_ads()
-            if (
-                    (category is None or ad.category.lower() == category.lower())
-                    and (status is None or ad.status.lower() == status.lower())
-                    and (author_name is None or ad.author.lower() == author_name.lower())
-            )
-        ]
-        return result
+        return self.ad_repo.filter(category=category, color=color)
 
+    @admin_required
     def bulk_publish(self, user_id: int) -> list[str | None]:
         """Публикует все объявления"""
         errors = []
-        if user_id not in self.__users:
-            raise IdError('Такого пользователя нет')
-        for ad in self.__users[user_id].get_ads():
+
+        self.user_repo.get_by_id(user_id)
+        for ad in self.ad_repo.get_all_ads():
             try:
                 ad.publish()
+                self.session.commit()
             except ValueError as e:
+                self.session.rollback()
                 errors.append(str(e))
         return errors
