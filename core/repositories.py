@@ -1,45 +1,46 @@
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
+
 from sqlalchemy import select
 import json
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from exceptions import IdError
 from models import UserModel, AdModel, ItemAdModel, PetAdModel
 
 
 class UserRepository:
-    def __init__(self, session: Session):
+    def __init__(self, session: AsyncSession):
         self.session = session
 
-    def get_by_id(self, user_id: int):
-        user = self.session.get(UserModel, user_id)
+    async def get_by_id(self, user_id: int):
+        user = await self.session.get(UserModel, user_id)
         if user is None:
             raise IdError("Такого пользователя с таким айди нет")
         return user
 
-    def get_all_users(self):
-        stmt = select(UserModel)
-        result = self.session.execute(stmt)
+    async def get_all_users(self):
+        stmt = select(UserModel).options(selectinload(UserModel.user_ads))
+        result = await self.session.execute(stmt)
         return result.scalars().all()
 
-    def add(self, name: str, contact_info: str) -> UserModel | None:
+    async def add(self, name: str, contact_info: str) -> UserModel | None:
         user = UserModel(name=name, contact_info=contact_info)
 
         try:
             self.session.add(user)
-            self.session.commit()
+            await self.session.commit()
             return user
 
-        except IntegrityError as e:
-            self.session.rollback()
-            raise Exception(f"Невозможно добавить пользователя, ошибка: {e}")
+        except IntegrityError:
+            await self.session.rollback()
 
 
 class AdRepository:
-    def __init__(self, session: Session):
+    def __init__(self, session: AsyncSession):
         self.session = session
 
-    def add_pet_ad(
+    async def add_pet_ad(
             self,
             user_id: int,
             category: str,
@@ -48,7 +49,7 @@ class AdRepository:
             breed: str | None = None,
             **kwargs
     ):
-        user = self.session.get(UserModel, user_id)
+        user = await self.session.get(UserModel, user_id)
         if user is None:
             raise IdError("Такого пользователя с таким айди нет")
 
@@ -63,13 +64,13 @@ class AdRepository:
 
         try:
             self.session.add(pet_ad)
-            self.session.commit()
+            await self.session.commit()
             return pet_ad
         except Exception as e:
-            self.session.rollback()
+            await self.session.rollback()
             raise Exception(f"Невозможно добавить объявление, ошибка: {e}")
 
-    def add_item_ad(
+    async def add_item_ad(
             self,
             user_id: int,
             category: str,
@@ -77,7 +78,7 @@ class AdRepository:
             value: str | None = None,
             **kwargs
     ):
-        user = self.session.get(UserModel, user_id)
+        user = await self.session.get(UserModel, user_id)
         if user is None:
             raise IdError("Такого пользователя с таким айди нет")
 
@@ -91,19 +92,19 @@ class AdRepository:
 
         try:
             self.session.add(item_ad)
-            self.session.commit()
+            await self.session.commit()
             return item_ad
 
         except Exception as e:
-            self.session.rollback()
+            await self.session.rollback()
             raise Exception(f"Невозможно добавить объявление, ошибка: {e}")
 
-    def get_all_ads(self):
+    async def get_all_ads(self):
         stmt = select(AdModel)
-        result = self.session.execute(stmt)
+        result = await self.session.execute(stmt)
         return result.scalars().all()
 
-    def filter(self, category: str | None = None, color: str | None = None):
+    async def filter(self, limit: int, offset: int, category: str | None = None, color: str | None = None):
         stmt = select(AdModel)
 
         conditions = []
@@ -117,5 +118,8 @@ class AdRepository:
         if conditions:
             stmt = stmt.where(*conditions)
 
-        result = self.session.execute(stmt)
+        stmt = stmt.limit(limit).offset(offset)
+
+        result = await self.session.execute(stmt)
+
         return result.scalars().all()

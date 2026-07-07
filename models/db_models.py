@@ -14,6 +14,7 @@ class UserModel(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(50), nullable=False)
     contact_info: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
+    role: Mapped[str] = mapped_column(default="user")
 
     user_ads: Mapped[List["AdModel"]] = relationship(back_populates="user")
 
@@ -24,6 +25,10 @@ class UserModel(Base):
 
         return contact
 
+    __mapper_args__ = {
+        "polymorphic_on": "role",
+        "polymorphic_identity": "user",
+    }
 
 
 class AdModel(Base):
@@ -136,3 +141,6 @@ class ItemAdModel(AdModel):
         if other_value is None:
             return False
         return 0.8 * other_value <= self.value <= 1.2 * other_value
+
+class AdminModel(UserModel):
+    __mapper_args__ = {"polymorphic_identity": "Admin"}

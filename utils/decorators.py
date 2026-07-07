@@ -1,6 +1,6 @@
 import time
 from functools import wraps
-from models import Admin
+from models import AdminModel
 
 
 def time_logger(func):
@@ -36,7 +36,7 @@ def admin_required(func):
     def wrapper(*args, **kwargs):
         initiator = args[1]
 
-        if not isinstance(initiator, Admin):
+        if not isinstance(initiator, AdminModel):
             raise PermissionError("Доступ запрещен!")
 
         return func(*args, **kwargs)
