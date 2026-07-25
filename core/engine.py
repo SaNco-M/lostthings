@@ -31,7 +31,6 @@ class LostAndFound:
     @type_check(name=str, contact_info=str)
     async def register_user(self, name, contact_info):
         await self.user_repo.add(name=name, contact_info=contact_info)
-        print('Пользователь добавлен')
 
         return await self.user_repo.add(name=name, contact_info=contact_info)
 
@@ -39,10 +38,11 @@ class LostAndFound:
         """Добавление объявления пользователю"""
 
         if ad_class == PetAdModel:
-            await self.ad_repo.add_pet_ad(user_id=user_id, **kwargs)
+            return await self.ad_repo.add_pet_ad(user_id=user_id, **kwargs)
+
 
         elif ad_class == ItemAdModel:
-            await self.ad_repo.add_item_ad(user_id=user_id, **kwargs)
+            return await self.ad_repo.add_item_ad(user_id=user_id, **kwargs)
 
     @admin_required
     def force_delete_ad(self, initiator, user_id: int, ad_index: int):

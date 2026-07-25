@@ -1,0 +1,44 @@
+services:
+
+  db:
+    image: postgres:15-alpine
+
+    environment:
+      POSTGRES_USER: alex
+      POSTGRES_PASSWORD: mysecretpass
+      POSTGRES_DB: lostthings_db
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U alex -d lostthings_db" ]
+      start_period: 20s
+
+  migration:
+    build: .
+    entrypoint: []
+    environment:
+      DATABASE_URL: postgresql+asyncpg://alex:mysecretpass@db:543Я2/lostthings_db
+
+    command: alembic upgrade head
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    build: .
+
+    ports:
+      - "8000:8000"
+
+    environment:
+      DATABASE_URL: postgresql+asyncpg://alex:mysecretpass@postgresSQL:5432/lostthings_db
+
+    depends_on:
+      migration:
+        condition: service_completed_successfully
+
+volumes:
+  postgres_data:

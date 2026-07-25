@@ -5,11 +5,12 @@ from pydantic import BaseModel, ConfigDict, field_validator, computed_field, Fie
 class AdCreateSchema(BaseModel):
     user_id: int
     category: str = Field(min_length=1, title="Категория объявления")
-    color: str = Field(min_length=1, title="Цвет")
+    color: str | None = Field(min_length=1, title="Цвет")
     ad_type: str = Field(min_length=2, title="Тип объявления")
     breed: str | None = Field(default=None, title="Порода")
     pet_name: str | None = Field(default=None, title="Кличка")
-    value: int| None = Field(default=None, description="Примерная стоимость находки")
+    reward: int| None = Field(default=None, title="Вознаграждение")
+    distinctive_features: str | None = Field(default="Нет", max_length=200, title="Особые приметы")
     extra_info: str | None = Field(default=None)
 
     @field_validator("color")
@@ -23,7 +24,7 @@ class AdCreateSchema(BaseModel):
     @field_validator("ad_type")
     @classmethod
     def validate_type(cls, ad_type: Any) -> str:
-        if ad_type not in ["item", "pet"]:
+        if ad_type not in ["item", "pet", "human"]:
             raise ValueError("Объявление не может быть такого типа")
 
         return ad_type

@@ -5,16 +5,13 @@ from fastapi import FastAPI, Depends
 from contextlib import asynccontextmanager
 from models import Base, UserCreateSchema, UserResponseSchema, AdCreateSchema, AdResponseSchema, PetAdModel, ItemAdModel
 from core import LostAndFound
-
-DATABASE_URL = "sqlite+aiosqlite:///lostthings.db"
+from config import DATABASE_URL
 
 engine = create_async_engine(DATABASE_URL, echo=False)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
 
     yield
 
@@ -54,6 +51,7 @@ async def create_ad(ad_data: AdCreateSchema, engine: LostAndFound = Depends(get_
             extra_info=ad_data.extra_info
 
         )
+        return ad
 
 
     elif ad_data.ad_type == "item":
@@ -66,7 +64,7 @@ async def create_ad(ad_data: AdCreateSchema, engine: LostAndFound = Depends(get_
             extra_info=ad_data.extra_info
         )
 
-    return ad
+        return ad
 
 
 @app.get("/search", response_model=list[AdResponseSchema])

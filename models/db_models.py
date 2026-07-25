@@ -4,6 +4,7 @@ from typing import List
 from config import DEFAULT_STATUS
 from sqlalchemy.orm import validates
 
+
 class Base(DeclarativeBase):
     pass
 
@@ -42,7 +43,7 @@ class AdModel(Base):
     status: Mapped[str] = mapped_column(String(50), default=DEFAULT_STATUS)
     extra_info: Mapped[str | None] = mapped_column(String(100), nullable=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
-
+    reward: Mapped[int | None] = mapped_column(nullable=True)
     ad_type: Mapped[str]
     user: Mapped[UserModel] = relationship(back_populates="user_ads")
 
@@ -64,7 +65,6 @@ class AdModel(Base):
                 f" {self.color},"
                 f" (Автор: {self.author})"
             )
-
 
     def verify(self):
         self.is_verified = True
@@ -116,7 +116,6 @@ class ItemAdModel(AdModel):
     __tablename__ = "item_ads"
 
     id: Mapped[int] = mapped_column(ForeignKey("ads.id"), primary_key=True)
-    value: Mapped[int | None] = mapped_column(Integer)
 
     __mapper_args__ = {
         "polymorphic_identity": "item_ad",
@@ -124,10 +123,8 @@ class ItemAdModel(AdModel):
 
     def __str__(self):
         parent_str = super().__str__()
-        if self.value:
-            return f"{parent_str}, Примерная стоимость: {self.value}"
-        else:
-            return parent_str
+
+        return parent_str
 
     def get_search_text(self):
         return f"{self.category} {self.color} {self.value}"
@@ -141,6 +138,18 @@ class ItemAdModel(AdModel):
         if other_value is None:
             return False
         return 0.8 * other_value <= self.value <= 1.2 * other_value
+
+
+class HumanAdModel(AdModel):
+    __tablename__ = "human_ads"
+
+    id: Mapped[int] = mapped_column(ForeignKey("ads.id"), primary_key=True)
+    age: Mapped[int] = mapped_column()
+    distinctive_features: Mapped[str | None] = mapped_column(String(200), nullable=True)
+
+    __mapper_args__ = {
+        "polymorphic_identity": "human_ad"
+    }
 
 class AdminModel(UserModel):
     __mapper_args__ = {"polymorphic_identity": "Admin"}

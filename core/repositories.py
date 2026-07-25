@@ -54,6 +54,7 @@ class AdRepository:
             raise IdError("Такого пользователя с таким айди нет")
 
         pet_ad = PetAdModel(
+            user_id=user_id,
             author=user.name,
             category=category,
             color=color,
@@ -83,6 +84,7 @@ class AdRepository:
             raise IdError("Такого пользователя с таким айди нет")
 
         item_ad = ItemAdModel(
+            user_id=user_id,
             author=user.name,
             category=category,
             color=color,
