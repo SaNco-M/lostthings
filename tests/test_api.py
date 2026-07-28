@@ -37,3 +37,4 @@ async def test_create_ad(client, db_session):
     assert data["category"] == "Кошка"
     assert data["color"] == "Черный"
     assert db_ad.breed == "Сибирская"
+
