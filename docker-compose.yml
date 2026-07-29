@@ -1,6 +1,6 @@
 services:
 
-  db:
+  postgresSQL:
     image: postgres:15-alpine
 
     environment:
