@@ -5,7 +5,7 @@ services:
 
     environment:
       POSTGRES_USER: alex
-      POSTGRES_PASSWORD: mysecretpass
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: lostthings_db
 
     volumes:
@@ -19,7 +19,7 @@ services:
     build: .
     entrypoint: []
     environment:
-      DATABASE_URL: postgresql+asyncpg://alex:mysecretpass@db:543Я2/lostthings_db
+      DATABASE_URL: ${DATABASE_URL}
 
     command: alembic upgrade head
 
@@ -34,7 +34,7 @@ services:
       - "8000:8000"
 
     environment:
-      DATABASE_URL: postgresql+asyncpg://alex:mysecretpass@postgresSQL:5432/lostthings_db
+      DATABASE_URL: ${DATABASE_URL}
 
     depends_on:
       migration:
