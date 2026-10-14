@@ -1,9 +1,10 @@
 import pytest
+from models.animals import PetAd
+from models.items import ItemAd
+
 from backend.app.core.engine import LostAndFound
 from backend.app.exceptions.errors import IdError
 from backend.app.models import Ad
-from models.animals import PetAd
-from models.items import ItemAd
 
 
 @pytest.fixture

@@ -1,10 +1,12 @@
 import json
-from backend.app.exceptions import IdError
-from backend.app.models import AdModel, ItemAdModel, PetAdModel, UserModel
+
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
+
+from backend.app.exceptions import IdError
+from backend.app.models import AdModel, ItemAdModel, PetAdModel, UserModel
 
 
 class UserRepository:
