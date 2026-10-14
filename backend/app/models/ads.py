@@ -29,8 +29,8 @@ class AdModel(Base):
 
     author: Mapped["UserModel"] = relationship(back_populates="ad")
     pet_details: Mapped["PetAdModel"] = relationship(
-        back_populates="ads", uselist=False
+        back_populates="ad", uselist=False
     )
     item_details: Mapped["ItemAdModel"] = relationship(
-        back_populates="ads", uselist=False
+        back_populates="ad", uselist=False
     )
