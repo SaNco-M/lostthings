@@ -1,12 +1,20 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
-from database import Base
 from sqlalchemy import DateTime, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from app.database.base import Base
+
 if TYPE_CHECKING:
-    from models import ItemAdModel, PetAdModel, UserModel
+    from app.models import (
+        ItemAdModel,
+        LocationModel,
+        PetAdModel,
+        PhotoModel,
+        ReportModel,
+        UserModel,
+    )
 
 
 class AdModel(Base):
@@ -18,19 +26,22 @@ class AdModel(Base):
     description: Mapped[str] = mapped_column(String(300))
     category: Mapped[str] = mapped_column(String(50), index=True, nullable=False)
     is_verified: Mapped[bool] = mapped_column(default=False)
-    archived_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    archived_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     status: Mapped[str] = mapped_column(String(50), default="Active")
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
-        default=datetime.now,
+        default=lambda: datetime.now(UTC),
     )
     ad_type: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
 
     author: Mapped["UserModel"] = relationship(back_populates="ad")
-    pet_details: Mapped["PetAdModel"] = relationship(
-        back_populates="ad", uselist=False
-    )
+    pet_details: Mapped["PetAdModel"] = relationship(back_populates="ad", uselist=False)
     item_details: Mapped["ItemAdModel"] = relationship(
         back_populates="ad", uselist=False
     )
+    photos: Mapped[list["PhotoModel"]] = relationship(back_populates="ad")
+    location: Mapped["LocationModel"] = relationship(back_populates="ad")
+    reports: Mapped[list["ReportModel"]] = relationship(back_populates="ad")

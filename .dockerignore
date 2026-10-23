@@ -9,6 +9,8 @@ __pycache__/
 .vscode/
 .idea/
 
+.ruff_cache/
+
 *.log
 
 .env
@@ -17,3 +19,5 @@ __pycache__/
 lostthings.db
 project.txt
 export.py
+
+dev.db

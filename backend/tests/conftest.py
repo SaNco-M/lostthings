@@ -2,12 +2,12 @@ import os
 
 os.environ["DATABASE_URL"] = "postgresql+asyncpg://alex:mysecretpass@localhost:5432/lostthings_db"
 import pytest
-from alembic import command
 from alembic.config import Config
+from backend.app.main import app, engine, get_db
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.main import app, engine, get_db
+from alembic import command
 
 alembic_cfg = Config("alembic.ini")
 

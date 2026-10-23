@@ -1,14 +1,15 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
-from database import Base
 from sqlalchemy import DateTime, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from app.database.base import Base
+
 if TYPE_CHECKING:
-    from models import AdModel
+    from app.models import AdModel, ReportModel
 
 
 class UserModel(Base):
@@ -23,8 +24,11 @@ class UserModel(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
-        default=datetime.now,
+        default=lambda: datetime.now(UTC),
     )
+
     role: Mapped[str] = mapped_column(String(20), default="user")
 
     ads: Mapped[list[AdModel]] = relationship(back_populates="author")
+
+    reports: Mapped[list[ReportModel]] = relationship(back_populates="author")
