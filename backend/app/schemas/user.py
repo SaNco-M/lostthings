@@ -1,28 +1,43 @@
-from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator
+import phonenumbers
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    EmailStr,
+    Field,
+    computed_field,
+    field_validator,
+    model_validator,
+)
 
 
 class UserCreateSchema(BaseModel):
-    name: str
-    contact_info: str
+    name: str = Field(min_length=1, max_length=128)
+    email: EmailStr | None = None
+    phone: str | None = None
+    password: str = Field(min_length=6, max_length=128)
 
-    @field_validator("contact_info")
+    @model_validator(mode="after")
+    def validate_contact(self):
+        if not self.email and not self.phone:
+            raise ValueError("Укажите email или телефон")
+
+        return self
+
+    @field_validator("phone")
     @classmethod
-    def validate_contact(cls, value):
-        if "@" not in value and "+" not in value:
-            raise ValueError("Добавьте + или @")
+    def validate_phone(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
 
-        return value
+        value = value.strip()
 
+        if value == "":
+            return None
 
-class UserResponseSchema(BaseModel):
-    id: int
-    name: str
-    contact_info: str
-    role: str
-
-    model_config = ConfigDict(from_attributes=True)
-
-    @computed_field
-    @property
-    def display_name(self) -> str:
-        return f"User: {self.name} (ID: {self.id})"
+        try:
+            parsed = phonenumbers.parse(value.strip(), None)
+        except phonenumbers.NumberParseException:
+            raise ValueError("Некорректный номер телефона")
+        if not phonenumbers.is_valid_number(parsed):
+            raise ValueError("Некорректный номер телефона")
+        return phonenumbers.format_number(parsed, phonenumbers.PhoneNumberFormat.E164)
