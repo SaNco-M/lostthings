@@ -1,46 +1,35 @@
-from typing import Any
-
+from app.enums import AnimalCategory, ItemCategory, TypeAd
 from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator
 
 
-class AdCreateSchema(BaseModel):
-    user_id: int
-    category: str = Field(min_length=1, title="Категория объявления")
-    color: str | None = Field(min_length=1, title="Цвет")
-    ad_type: str = Field(min_length=2, title="Тип объявления")
-    breed: str | None = Field(default=None, title="Порода")
-    pet_name: str | None = Field(default=None, title="Кличка")
-    reward: int | None = Field(default=None, title="Вознаграждение")
-    distinctive_features: str | None = Field(
-        default="Нет", max_length=200, title="Особые приметы"
-    )
-    extra_info: str | None = Field(default=None)
-
-    @field_validator("color")
-    @classmethod
-    def validate_color(cls, value):
-        if "Белый" not in value and "Черный" not in value and "Серый" not in value:
-            raise ValueError("Поменяйте цвет")
-
-        return value
-
-    @field_validator("ad_type")
-    @classmethod
-    def validate_type(cls, ad_type: Any) -> str:
-        if ad_type not in ["item", "pet", "human"]:
-            raise ValueError("Объявление не может быть такого типа")
-
-        return ad_type
+class AnimalAdCreateSchema(BaseModel):
+    title: str = Field(min_length=2, max_length=100)
+    description: str = Field(min_length=3, max_length=300)
+    category: AnimalCategory = Field(title="Категория объявления")
+    pet_name: str | None = Field(default=None, max_length=50)
+    breed: str | None = Field(default=None, max_length=50)
+    color: str | None = Field(default=None, max_length=100)
+    listing_type: TypeAd
+    location: str = Field(min_length=2, max_length=200)
+    photo: str | None = Field(default=None)
 
 
-class AdResponseSchema(BaseModel):
-    id: int
-    category: str
-    color: str
-
+class AnimalAdResponseSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    @computed_field
-    @property
-    def display_field(self) -> str:
-        return f"Найдено: {self.category}, цвет {self.color}"
+
+class ItemAdCreateSchema(BaseModel):
+    title: str = Field(min_length=2, max_length=100)
+    description: str = Field(min_length=3, max_length=300)
+    category: ItemCategory = Field(title="Категория объявления")
+    listing_type: TypeAd
+    location: str = Field(min_length=2, max_length=200)
+    photo: str | None
+
+    model: str | None = Field(max_length=100, default=None)
+    brand: str | None = Field(max_length=100, default=None)
+    color: str | None = Field(max_length=100, default=None)
+
+
+class ItemAdResponseSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)

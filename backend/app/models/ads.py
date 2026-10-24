@@ -35,7 +35,7 @@ class AdModel(Base):
         nullable=False,
         default=lambda: datetime.now(UTC),
     )
-    ad_type: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
+    listing_type: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
 
     author: Mapped["UserModel"] = relationship(back_populates="ad")
     pet_details: Mapped["PetAdModel"] = relationship(back_populates="ad", uselist=False)
