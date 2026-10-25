@@ -1,1 +1,1 @@
-from .errors import IdError
+from app.exceptions.errors import AdNotFoundError, IdError
