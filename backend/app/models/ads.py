@@ -21,7 +21,9 @@ class AdModel(Base):
     __tablename__ = "ads"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
     title: Mapped[str] = mapped_column(String(100), nullable=False)
     description: Mapped[str] = mapped_column(String(300))
     category: Mapped[str] = mapped_column(String(50), index=True, nullable=False)
@@ -35,13 +37,29 @@ class AdModel(Base):
         nullable=False,
         default=lambda: datetime.now(UTC),
     )
+
     listing_type: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
+    type_ad: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
 
     author: Mapped["UserModel"] = relationship(back_populates="ad")
-    pet_details: Mapped["PetAdModel"] = relationship(back_populates="ad", uselist=False)
-    item_details: Mapped["ItemAdModel"] = relationship(
-        back_populates="ad", uselist=False
+    pet_details: Mapped["PetAdModel"] = relationship(
+        back_populates="ad", uselist=False, cascade="all, delete-orphan"
     )
-    photos: Mapped[list["PhotoModel"]] = relationship(back_populates="ad")
-    location: Mapped["LocationModel"] = relationship(back_populates="ad")
+    item_details: Mapped["ItemAdModel"] = relationship(
+        back_populates="ad", uselist=False, cascade="all, delete-orphan"
+    )
+    photos: Mapped[list["PhotoModel"]] = relationship(
+        back_populates="ad", cascade="all, delete-orphan"
+    )
+    location_rel: Mapped["LocationModel | None"] = relationship(
+        back_populates="ad", uselist=False, cascade="all, delete-orphan"
+    )
     reports: Mapped[list["ReportModel"]] = relationship(back_populates="ad")
+
+    @property
+    def location(self) -> str | None:
+        return self.location_rel.address if self.location_rel else None
+
+    @property
+    def photo(self) -> str | None:
+        return self.photos[0].url if self.photos else None

@@ -35,14 +35,14 @@ async def create_ad(
         return ad
 
 
-@router.get("/search", response_model=list[AdResponseSchema])
-async def get_filter_ads(
-    engine: LostAndFound = Depends(get_engine),
-    category: str | None = None,
-    color: str | None = None,
-    limit: int = Query(default=10, ge=1, le=50),
-    offset: int = Query(default=0, ge=0),
-):
-    return await engine.filter_ads(
-        category=category, color=color, limit=limit, offset=offset
-    )
+# @router.get("/search", response_model=list[AdResponseSchema])
+# async def get_filter_ads(
+#     engine: LostAndFound = Depends(get_engine),
+#     category: str | None = None,
+#     color: str | None = None,
+#     limit: int = Query(default=10, ge=1, le=50),
+#     offset: int = Query(default=0, ge=0),
+# ):
+#     return await engine.filter_ads(
+#         category=category, color=color, limit=limit, offset=offset
+#     )

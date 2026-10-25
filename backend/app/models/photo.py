@@ -13,7 +13,9 @@ class PhotoModel(Base):
     __tablename__ = "photos"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    ad_id: Mapped[int] = mapped_column(ForeignKey("ads.id"))
+    ad_id: Mapped[int] = mapped_column(
+        ForeignKey("ads.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     url: Mapped[str] = mapped_column(String(500), nullable=False)
     position: Mapped[int] = mapped_column(nullable=False, default=0)
 
