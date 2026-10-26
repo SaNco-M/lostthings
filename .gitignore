@@ -1,2 +1,33 @@
-/venv/
-/.idea/
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*.egg-info/
+.ruff_cache/
+
+# ===== Виртуальное окружение =====
+.venv/
+venv/
+
+# ===== Секреты и настройки =====
+.env
+.env.local
+*.env
+
+# ===== Alembic / БД =====
+*.db
+*.sqlite3
+
+# ===== Тесты =====
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ===== IDE =====
+.idea/
+.vscode/
+
+# ===== ОС =====
+.DS_Store
+Thumbs.db
+
+dev.db
