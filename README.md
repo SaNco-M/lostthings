@@ -42,7 +42,7 @@ docker compose up -d postgresSQL
 cd backend
 pip install -r requirements.txt
 alembic upgrade head
-python seed.py
+python zaglushka.py
 uvicorn app.main:app --reload
 ```
 
