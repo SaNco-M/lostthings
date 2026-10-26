@@ -1,27 +1,56 @@
-# LostThings — Сервис поиска пропавших животных и вещей
+# LostThings — Сервис поиска потерянных животных
 
-**LostThings** — веб-приложение для публикации и поиска объявлений о потерянных и найденных животных и вещах. 
+Веб-приложение для публикации и поиска объявлений о потерянных и найденных животных.
 
----
+## Архитектура и технологии
 
-## Архитектура проекта
+- **Database:** PostgreSQL 15, Docker Compose, persistent volume `postgres_data`
+- **Backend:** FastAPI, SQLAlchemy 2.0 (AsyncIO), Alembic, Pydantic V2
+- **Frontend:** SPA-клиент на HTML5, CSS3 и Vanilla JavaScript
 
-Приложение построено по трехуровневой архитектуре:
-1. **База данных**: PostgreSQL 15, работающая как изолированный сетевой сервис в Docker-контейнере с именованным томом для персистентности данных (`postgres_data`).
-2. **Бэкенд**: Асинхронный REST API на **FastAPI**, **SQLAlchemy 2.0 (AsyncIO)**, **Alembic** и **Pydantic V2**. Реализована композиция 1:1, защита от IDOR, строгая валидация схем (Discriminated Union) и каноничный паттерн репозитория/сервиса.
-3. **Фронтенд**: Легковесный клиент (HTML5, CSS3, Vanilla JavaScript), взаимодействующий с бэкендом через Fetch API (форма отправки + динамический список объявлений).
+## Быстрый старт
 
----
+### 1. Настройка окружения
 
-## Стек технологий
+Создайте файл `.env` на основе шаблона.
 
-* **Язык бэкенда:** Python 3.10+
-* **Фреймворк:** FastAPI, Uvicorn
-* **СУБД:** PostgreSQL 15 (Docker)
-* **Драйвер БД:** asyncpg
-* **ORM:** SQLAlchemy 2.0 (AsyncIO)
-* **Миграции:** Alembic
-* **Валидация данных:** Pydantic V2 (pydantic-settings)
-* **Фронтенд:** HTML5, CSS3, JavaScript (Fetch API)
-* **Инфраструктура:** Docker, Docker Compose
+**Linux / macOS:**
+```bash
+cp backend/.env.example backend/.env
+```
 
+**Windows (PowerShell):**
+```powershell
+Copy-Item backend/.env.example backend/.env
+```
+
+Настройте переменные окружения и параметры подключения к базе данных в `backend/.env`.
+
+### 2. Запуск базы данных
+
+Из корневой директории проекта выполните:
+
+```bash
+docker compose up -d postgresSQL
+```
+
+### 3. Запуск бэкенда
+
+Перейдите в директорию `backend`, установите зависимости и выполните миграции:
+
+```bash
+cd backend
+pip install -r requirements.txt
+alembic upgrade head
+python seed.py
+uvicorn app.main:app --reload
+```
+
+После запуска API будет доступно по адресу:
+
+- **API:** http://127.0.0.1:8000
+- **Swagger UI:** http://127.0.0.1:8000/docs
+
+### 4. Запуск фронтенда
+
+Откройте файл `frontend/index.html` в браузере.
