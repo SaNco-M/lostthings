@@ -25,4 +25,3 @@
 * **Фронтенд:** HTML5, CSS3, JavaScript (Fetch API)
 * **Инфраструктура:** Docker, Docker Compose
 
----
