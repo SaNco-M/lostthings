@@ -41,7 +41,7 @@ class AdModel(Base):
     listing_type: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
     type_ad: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
 
-    author: Mapped["UserModel"] = relationship(back_populates="ad")
+    author: Mapped["UserModel"] = relationship(back_populates="ads")
     pet_details: Mapped["PetAdModel"] = relationship(
         back_populates="ad", uselist=False, cascade="all, delete-orphan"
     )

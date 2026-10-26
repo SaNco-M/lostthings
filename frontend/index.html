@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LostThings — Поиск животных</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f4f6f9;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h1,
+        h2 {
+            color: #2c3e50;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 25px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full {
+            grid-column: span 2;
+        }
+
+        label {
+            margin-bottom: 5px;
+            font-weight: 600;
+            font-size: 14px;
+            color: #4a5568;
+        }
+
+        input,
+        select,
+        textarea {
+            padding: 10px;
+            border: 1px solid #cbd5e0;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        button {
+            background: #3182ce;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+
+        button:hover {
+            background: #2b6cb0;
+        }
+
+        .ads-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 15px;
+        }
+
+        .ad-item {
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .ad-item img {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+            background: #edf2f7;
+        }
+
+        .ad-body {
+            padding: 15px;
+            flex-grow: 1;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .tag.lost {
+            background: #fed7d7;
+            color: #9b2c2c;
+        }
+
+        .tag.found {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🐾 LostThings — Сервис поиска питомцев</h1>
+
+        <!-- Форма создания -->
+        <div class="card">
+            <h2>Добавить объявление</h2>
+            <form id="adForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Кличка питомца</label>
+                        <input type="text" id="pet_name" required placeholder="Например: Бруно">
+                    </div>
+                    <div class="form-group">
+                        <label>Порода</label>
+                        <input type="text" id="breed" placeholder="Например: Лабрадор">
+                    </div>
+                    <div class="form-group">
+                        <label>Окрас</label>
+                        <input type="text" id="color" placeholder="Например: Черный">
+                    </div>
+                    <div class="form-group">
+                        <label>Категория</label>
+                        <select id="category">
+                            <option value="dogs">Собаки (dogs)</option>
+                            <option value="cats">Кошки (cats)</option>
+                            <option value="birds">Птицы (birds)</option>
+                            <option value="other_animals">Другие (other_animals)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Тип объявления</label>
+                        <select id="listing_type">
+                            <option value="lost">Потерян (lost)</option>
+                            <option value="found">Найден (found)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Адрес / Локация</label>
+                        <input type="text" id="location" required placeholder="Москва, парк Сокольники">
+                    </div>
+                    <div class="form-group full">
+                        <label>Ссылка на фото (URL)</label>
+                        <input type="url" id="photo"
+                            placeholder="https://images.unsplash.com/photo-1543466835-00a7907e9de1">
+                    </div>
+                    <div class="form-group full">
+                        <label>Заголовок объявления</label>
+                        <input type="text" id="title" required placeholder="Потерялась собака в районе Сокольников">
+                    </div>
+                    <div class="form-group full">
+                        <label>Описание</label>
+                        <textarea id="description" rows="2" required
+                            placeholder="Особые приметы, ошейник..."></textarea>
+                    </div>
+                </div>
+                <button type="submit">Опубликовать объявление</button>
+            </form>
+        </div>
+
+        <h2>Все объявления из базы</h2>
+        <div id="adsList" class="ads-list">Загрузка объявлений...</div>
+    </div>
+
+    <script>
+        const API_URL = "http://127.0.0.1:8000/api/ads";
+
+        // Загрузка объявлений из базы
+        async function loadAds() {
+            try {
+                const res = await fetch(API_URL);
+                const ads = await res.json();
+                const container = document.getElementById("adsList");
+                container.innerHTML = "";
+
+                if (ads.length === 0) {
+                    container.innerHTML = "<p>Объявлений пока нет.</p>";
+                    return;
+                }
+
+                ads.forEach(ad => {
+                    const imgUrl = ad.photo || "https://via.placeholder.com/300x200?text=Нет+фото";
+                    const pet = ad.pet_details || {};
+                    container.innerHTML += `
+                    <div class="ad-item">
+                        <img src="${imgUrl}" alt="${ad.title}">
+                        <div class="ad-body">
+                            <span class="tag ${ad.listing_type}">${ad.listing_type === 'lost' ? 'Потерян' : 'Найден'}</span>
+                            <h3 style="margin: 0 0 8px 0; font-size: 16px;">${ad.title}</h3>
+                            <p style="font-size: 13px; color: #718096; margin: 0 0 8px 0;">📍 ${ad.location}</p>
+                            <p style="font-size: 14px; margin: 0 0 8px 0;">${ad.description}</p>
+                            <small style="color: #4a5568;">Кличка: <b>${pet.pet_name || 'Не указана'}</b> | Порода: <b>${pet.breed || '—'}</b></small>
+                        </div>
+                    </div>
+                `;
+                });
+            } catch (err) {
+                console.error(err);
+                document.getElementById("adsList").innerHTML = "<p style='color:red;'>Ошибка загрузки данных с бэкенда.</p>";
+            }
+        }
+
+
+        document.getElementById("adForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const payload = {
+                type_ad: "animal",
+                title: document.getElementById("title").value,
+                description: document.getElementById("description").value,
+                category: document.getElementById("category").value,
+                listing_type: document.getElementById("listing_type").value,
+                location: document.getElementById("location").value,
+                photo: document.getElementById("photo").value || null,
+                pet_details: {
+                    pet_name: document.getElementById("pet_name").value,
+                    breed: document.getElementById("breed").value,
+                    color: document.getElementById("color").value
+                }
+            };
+
+            const res = await fetch(API_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+                document.getElementById("adForm").reset();
+                loadAds();
+            } else {
+                const err = await res.json();
+                alert("Ошибка создания: " + JSON.stringify(err.detail));
+            }
+        });
+
+        loadAds();
+    </script>
+</body>
+
+</html>

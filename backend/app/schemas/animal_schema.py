@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -21,7 +22,7 @@ class AnimalAdCreateSchema(BaseModel):
     location: str = Field(min_length=2, max_length=200)
     photo: str | None = Field(default=None)
     pet_details: AnimalDetailsResponse | None = None
-    type_ad: AdType
+    type_ad: Literal[AdType.ANIMAL] = AdType.ANIMAL
 
 
 class AnimalAdResponseSchema(BaseModel):

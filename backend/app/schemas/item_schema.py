@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -19,7 +20,7 @@ class ItemAdCreateSchema(BaseModel):
     location: str = Field(min_length=2, max_length=200)
     photo: str | None = Field(default=None)
     item_details: ItemDetailsResponse | None = None
-    type_ad: AdType
+    type_ad: Literal[AdType.ITEM] = AdType.ITEM
 
 
 class ItemAdResponseSchema(BaseModel):

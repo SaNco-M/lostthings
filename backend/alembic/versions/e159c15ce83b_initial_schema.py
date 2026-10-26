@@ -1,17 +1,18 @@
 """initial_schema
 
-Revision ID: 4b0f14b0cda0
+Revision ID: e159c15ce83b
 Revises: 
-Create Date: 2026-10-17 19:04:18.282493
+Create Date: 2026-10-26 19:38:55.991300
 
 """
 from typing import Sequence, Union
 
-import sqlalchemy as sa
 from alembic import op
+import sqlalchemy as sa
+
 
 # revision identifiers, used by Alembic.
-revision: str = '4b0f14b0cda0'
+revision: str = 'e159c15ce83b'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -23,13 +24,15 @@ def upgrade() -> None:
     op.create_table('users',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=50), nullable=False),
-    sa.Column('contact_info', sa.String(length=100), nullable=False),
+    sa.Column('email', sa.String(length=255), nullable=False),
+    sa.Column('phone', sa.String(length=16), nullable=True),
     sa.Column('hashed_password', sa.String(length=255), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
     sa.Column('role', sa.String(length=20), nullable=False),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('email'),
+    sa.UniqueConstraint('phone')
     )
-    op.create_index(op.f('ix_users_contact_info'), 'users', ['contact_info'], unique=True)
     op.create_table('ads',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
@@ -40,34 +43,39 @@ def upgrade() -> None:
     sa.Column('archived_at', sa.DateTime(timezone=True), nullable=True),
     sa.Column('status', sa.String(length=50), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
-    sa.Column('ad_type', sa.String(length=50), nullable=False),
-    sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
+    sa.Column('listing_type', sa.String(length=50), nullable=False),
+    sa.Column('type_ad', sa.String(length=50), nullable=False),
+    sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index(op.f('ix_ads_ad_type'), 'ads', ['ad_type'], unique=False)
     op.create_index(op.f('ix_ads_category'), 'ads', ['category'], unique=False)
+    op.create_index(op.f('ix_ads_listing_type'), 'ads', ['listing_type'], unique=False)
+    op.create_index(op.f('ix_ads_type_ad'), 'ads', ['type_ad'], unique=False)
     op.create_index(op.f('ix_ads_user_id'), 'ads', ['user_id'], unique=False)
     op.create_table('item_ads',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('ad_id', sa.Integer(), nullable=False),
     sa.Column('category', sa.String(length=100), nullable=False),
-    sa.Column('model_or_brand', sa.String(length=100), nullable=False),
-    sa.Column('color', sa.String(length=100), nullable=False),
+    sa.Column('model', sa.String(length=100), nullable=True),
+    sa.Column('brand', sa.String(length=100), nullable=True),
+    sa.Column('color', sa.String(length=100), nullable=True),
     sa.ForeignKeyConstraint(['ad_id'], ['ads.id'], ),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('ad_id')
     )
+    op.create_index(op.f('ix_item_ads_brand'), 'item_ads', ['brand'], unique=False)
     op.create_index(op.f('ix_item_ads_category'), 'item_ads', ['category'], unique=False)
     op.create_index(op.f('ix_item_ads_color'), 'item_ads', ['color'], unique=False)
-    op.create_index(op.f('ix_item_ads_model_or_brand'), 'item_ads', ['model_or_brand'], unique=False)
+    op.create_index(op.f('ix_item_ads_model'), 'item_ads', ['model'], unique=False)
     op.create_table('locations',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('ad_id', sa.Integer(), nullable=False),
     sa.Column('latitude', sa.Float(), nullable=True),
     sa.Column('longitude', sa.Float(), nullable=True),
     sa.Column('address', sa.String(length=255), nullable=True),
-    sa.ForeignKeyConstraint(['ad_id'], ['ads.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.ForeignKeyConstraint(['ad_id'], ['ads.id'], ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('ad_id')
     )
     op.create_table('pet_ads',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -75,7 +83,7 @@ def upgrade() -> None:
     sa.Column('pet_name', sa.String(length=50), nullable=True),
     sa.Column('breed', sa.String(length=50), nullable=True),
     sa.Column('color', sa.String(length=100), nullable=True),
-    sa.ForeignKeyConstraint(['ad_id'], ['ads.id'], ),
+    sa.ForeignKeyConstraint(['ad_id'], ['ads.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('ad_id')
     )
@@ -86,9 +94,10 @@ def upgrade() -> None:
     sa.Column('ad_id', sa.Integer(), nullable=False),
     sa.Column('url', sa.String(length=500), nullable=False),
     sa.Column('position', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['ad_id'], ['ads.id'], ),
+    sa.ForeignKeyConstraint(['ad_id'], ['ads.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
+    op.create_index(op.f('ix_photos_ad_id'), 'photos', ['ad_id'], unique=False)
     op.create_table('reports',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('reporter_id', sa.Integer(), nullable=False),
@@ -107,19 +116,21 @@ def downgrade() -> None:
     """Downgrade schema."""
     # ### commands auto generated by Alembic - please adjust! ###
     op.drop_table('reports')
+    op.drop_index(op.f('ix_photos_ad_id'), table_name='photos')
     op.drop_table('photos')
     op.drop_index(op.f('ix_pet_ads_color'), table_name='pet_ads')
     op.drop_index(op.f('ix_pet_ads_breed'), table_name='pet_ads')
     op.drop_table('pet_ads')
     op.drop_table('locations')
-    op.drop_index(op.f('ix_item_ads_model_or_brand'), table_name='item_ads')
+    op.drop_index(op.f('ix_item_ads_model'), table_name='item_ads')
     op.drop_index(op.f('ix_item_ads_color'), table_name='item_ads')
     op.drop_index(op.f('ix_item_ads_category'), table_name='item_ads')
+    op.drop_index(op.f('ix_item_ads_brand'), table_name='item_ads')
     op.drop_table('item_ads')
     op.drop_index(op.f('ix_ads_user_id'), table_name='ads')
+    op.drop_index(op.f('ix_ads_type_ad'), table_name='ads')
+    op.drop_index(op.f('ix_ads_listing_type'), table_name='ads')
     op.drop_index(op.f('ix_ads_category'), table_name='ads')
-    op.drop_index(op.f('ix_ads_ad_type'), table_name='ads')
     op.drop_table('ads')
-    op.drop_index(op.f('ix_users_contact_info'), table_name='users')
     op.drop_table('users')
     # ### end Alembic commands ###

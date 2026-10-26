@@ -67,3 +67,18 @@ class AdRepository:
         )
         result = await self.session.execute(query)
         return result.scalar_one_or_none()
+
+    async def get_all(self, limit: int = 50, offset: int = 0) -> list[AdModel]:
+        query = (
+            select(AdModel)
+            .options(
+                selectinload(AdModel.pet_details),
+                selectinload(AdModel.location_rel),
+                selectinload(AdModel.photos),
+            )
+            .order_by(AdModel.id.desc())
+            .limit(limit)
+            .offset(offset)
+        )
+        result = await self.session.execute(query)
+        return list(result.scalars().all())

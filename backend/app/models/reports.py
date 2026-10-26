@@ -25,4 +25,4 @@ class ReportModel(Base):
     )
     author: Mapped["UserModel"] = relationship(back_populates="reports")
 
-    ad: Mapped["AdModel"] = relationship(back_populates="report")
+    ad: Mapped["AdModel"] = relationship(back_populates="reports")

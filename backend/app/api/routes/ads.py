@@ -1,48 +1,46 @@
-# from fastapi import APIRouter, Depends, Query
+from typing import Annotated
 
-# from backend.app.core import LostAndFound
-# from backend.app.models import AdCreateSchema, AdResponseSchema, ItemAdModel, PetAdModel
+from fastapi import APIRouter, Depends, HTTPException, status
 
-# router = APIRouter(tags=["ad"])
+from app.api.deps import get_ad_service
+from app.exceptions import AdNotFoundError
+from app.schemas import AnimalAdResponseSchema, AnyAdCreateSchema
+from app.service import AdService
 
-
-# @router.post("/ads", response_model=AdResponseSchema)
-# async def create_ad(
-#     ad_data: AdCreateSchema, engine: LostAndFound = Depends(get_engine)
-# ):
-#     if ad_data.ad_type == "pet":
-#         ad = await engine.post_ad_to_user(
-#             ad_data.user_id,
-#             PetAdModel,
-#             category=ad_data.category,
-#             color=ad_data.color,
-#             pet_name=ad_data.pet_name,
-#             breed=ad_data.breed,
-#             extra_info=ad_data.extra_info,
-#         )
-#         return ad
-
-#     elif ad_data.ad_type == "item":
-#         ad = await engine.post_ad_to_user(
-#             ad_data.user_id,
-#             ItemAdModel,
-#             category=ad_data.category,
-#             color=ad_data.color,
-#             value=ad_data.value,
-#             extra_info=ad_data.extra_info,
-#         )
-
-#         return ad
+router = APIRouter(prefix="/api/ads", tags=["Ads"])
 
 
-# @router.get("/search", response_model=list[AdResponseSchema])
-# async def get_filter_ads(
-#     engine: LostAndFound = Depends(get_engine),
-#     category: str | None = None,
-#     color: str | None = None,
-#     limit: int = Query(default=10, ge=1, le=50),
-#     offset: int = Query(default=0, ge=0),
-# ):
-#     return await engine.filter_ads(
-#         category=category, color=color, limit=limit, offset=offset
-#     )
+@router.post(
+    "", status_code=status.HTTP_201_CREATED, response_model=AnimalAdResponseSchema
+)
+async def create_ad(
+    data: AnyAdCreateSchema, service: Annotated[AdService, Depends(get_ad_service)]
+):
+    # Заглушка
+    mock_user_id = 1
+
+    return await service.create_ad(user_id=mock_user_id, data=data)
+
+
+@router.get(
+    "/{ad_id}", status_code=status.HTTP_200_OK, response_model=AnimalAdResponseSchema
+)
+async def get_ad(ad_id: int, service: Annotated[AdService, Depends(get_ad_service)]):
+    try:
+        return await service.get_ad_by_id(ad_id=ad_id)
+
+    except AdNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+
+
+@router.get(
+    "",
+    response_model=list[AnimalAdResponseSchema],
+    status_code=status.HTTP_200_OK,
+)
+async def get_all_ads(
+    service: Annotated[AdService, Depends(get_ad_service)],
+    limit: int = 50,
+    offset: int = 0,
+):
+    return await service.get_all_ads(limit=limit, offset=offset)
