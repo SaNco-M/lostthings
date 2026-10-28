@@ -9,7 +9,7 @@ app = FastAPI(title=settings.PROJECT_NAME)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"], # заглушка пока что потом поменять порты и прочее прочее
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
