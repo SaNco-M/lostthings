@@ -25,9 +25,7 @@ services:
   # 2. ОДНОРАЗОВЫЙ СЕРВИС МИГРАЦИЙ
   # ==============================================================================
   migration:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    image: ${APP_IMAGE}
     container_name: lostthings-migration
     environment:
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-alex}:${POSTGRES_PASSWORD}@postgresSQL:5432/${POSTGRES_DB:-lostthings_db}
@@ -43,9 +41,7 @@ services:
   # 3. БЭКЕНД ПРИЛОЖЕНИЯ
   # ==============================================================================
   web:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    image: ${APP_IMAGE}
     container_name: lostthings-backend
     expose:
       - "8000"
