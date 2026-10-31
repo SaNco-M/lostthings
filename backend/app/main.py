@@ -6,6 +6,8 @@ from app.core.config import settings
 
 app = FastAPI(title=settings.PROJECT_NAME)
 
+1 / 0
+
 
 @app.get("/health", status_code=200)
 async def health_check():
