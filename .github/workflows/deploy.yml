@@ -1,21 +1,79 @@
-name: Deploy to mini-pc
+name: deploy to minipc
 
 on:
   push:
-    branches:
-      - master
+    branches: [ master, main ]
+  workflow_dispatch:
+    inputs:
+      rollback_tag:
+        description: 'Тег (SHA) для отката'
+        default: 'latest'
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  deploy:
-    runs-on: self-hosted
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+      - run: |
+          pip install pytest pytest-asyncio httpx -r backend/requirements.txt
+          pytest backend/tests/
 
+  build-scan-push:
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and Scan
+        run: |
+          docker build -t app:test ./backend
+
+      - name: Trivy Scan (Fail on CRITICAL)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'app:test'
+          exit-code: '1'
+          severity: 'CRITICAL'
+
+      - name: Push to Registry
+        run: |
+          IMAGE_ID="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
+          docker tag app:test $IMAGE_ID:${{ github.sha }}
+          docker tag app:test $IMAGE_ID:latest
+          docker push $IMAGE_ID:${{ github.sha }}
+          docker push $IMAGE_ID:latest
+
+  deploy:
+    needs: build-scan-push
+    runs-on: self-hosted
     env:
       POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
       POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
       POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
-
     steps:
       - uses: actions/checkout@v4
-
-      - run: docker compose up -d --build
+      - name: Deploy Containers
+        run: |
+          docker compose up -d --build
+      - name: Smoke Test (curl)
+        run: |
+          sleep 5
+          curl -k -f https://localhost/health || exit 1
