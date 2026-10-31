@@ -91,7 +91,7 @@ jobs:
       POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
       POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
       POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      DATABASE_URL: postgresql+asyncpg://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@postgresSQL:5432/${{ secrets.POSTGRES_DB }}
       APP_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.rollback_tag || github.sha }}
 
     steps:
