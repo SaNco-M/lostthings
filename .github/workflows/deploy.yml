@@ -79,4 +79,4 @@ jobs:
       - name: Smoke Test (curl)
         run: |
           sleep 5
-          curl -k -f https://localhost/health || exit 1
+          curl -k -f https://localhost/api/ads || exit 1
