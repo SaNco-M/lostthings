@@ -44,3 +44,19 @@ async def get_all_ads(
     offset: int = 0,
 ):
     return await service.get_all_ads(limit=limit, offset=offset)
+
+
+@router.get(
+    "",
+    response_model=list[AnimalAdResponseSchema],
+    status_code=status.HTTP_200_OK,
+)
+async def get_all_ads(
+    service: Annotated[AdService, Depends(get_ad_service)],
+    limit: int = 50,
+    offset: int = 0,
+):
+
+    raise Exception("Ошибка")
+
+    return await service.get_all_ads(limit=limit, offset=offset)
