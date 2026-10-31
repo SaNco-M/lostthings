@@ -57,7 +57,7 @@ jobs:
 
       - name: Push to Registry
         run: |
-          IMAGE_ID="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
+          IMAGE_ID="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}" | tr '[:upper:]' '[:lower:]')
           docker tag app:test $IMAGE_ID:${{ github.sha }}
           docker tag app:test $IMAGE_ID:latest
           docker push $IMAGE_ID:${{ github.sha }}
