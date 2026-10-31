@@ -1,3 +1,7 @@
+import os
+
+os.environ["DATABASE_URL"] = "postgresql+asyncpg://test:test@localhost:5432/test_db"
+
 # import os
 
 # os.environ["DATABASE_URL"] = "postgresql+asyncpg://alex:mysecretpass@localhost:5432/lostthings_db"
