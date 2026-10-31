@@ -43,6 +43,5 @@ async def get_all_ads(
     limit: int = 50,
     offset: int = 0,
 ):
-    
 
     return await service.get_all_ads(limit=limit, offset=offset)
