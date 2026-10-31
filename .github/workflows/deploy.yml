@@ -11,7 +11,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_NAME: sanco-m/lostthings
 
 jobs:
   test:
@@ -57,7 +57,7 @@ jobs:
 
       - name: Push to Registry
         run: |
-          IMAGE_ID="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}" | tr '[:upper:]' '[:lower:]'
+          IMAGE_ID="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
           docker tag app:test $IMAGE_ID:${{ github.sha }}
           docker tag app:test $IMAGE_ID:latest
           docker push $IMAGE_ID:${{ github.sha }}
